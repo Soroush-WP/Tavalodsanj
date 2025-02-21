@@ -11,13 +11,14 @@ def index():
 @app.route('/calculate_birthday', methods=['POST'])
 def calculate_birthday():
     try:
-        data = request.get_json()
+        data = request.get_json(force=True)
         calendar_type = data['calendarType']
         year = int(data['year'])
         month = int(data['month'])
         day = int(data['day'])
 
         today = datetime.today()
+
         if calendar_type == 'gregorian':
             birth_date = datetime(year, month, day)
             birth_date_jalali = JalaliDate(birth_date)
@@ -31,12 +32,7 @@ def calculate_birthday():
 
         age_years = today.year - birth_date.year - ((today.month, today.day) < (birth_date.month, birth_date.day))
         age_months = (today.month - birth_date.month - (today.day < birth_date.day)) % 12
-
-        if today.day < birth_date.day:
-            days_in_prev_month = (today.replace(day=1) - timedelta(days=1)).day
-            age_days = days_in_prev_month - birth_date.day + today.day
-        else:
-            age_days = today.day - birth_date.day
+        age_days = (today - birth_date).days % 365 % 30
 
         next_birthday = datetime(today.year if (today.month, today.day) < (birth_date.month, birth_date.day) else today.year + 1, birth_date.month, birth_date.day)
         days_until_birthday = (next_birthday - today).days
